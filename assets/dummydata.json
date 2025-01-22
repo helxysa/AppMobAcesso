@@ -1,0 +1,106 @@
+{
+    "busStops": [
+      {
+        "id": 1,
+        "name": "Ponto A",
+        "location": {
+          "latitude": -23.550520,
+          "longitude": -46.633308
+        },
+        "accessibility": {
+          "elevator": true,
+          "ramp": true,
+          "prioritySeats": 2,
+          "notes": "Elevador em funcionamento."
+        },
+        "routes": [
+          {
+            "line": "101",
+            "destination": "Centro",
+            "schedule": [
+              { "time": "08:00", "accessible": true },
+              { "time": "08:30", "accessible": true },
+              { "time": "09:00", "accessible": false }
+            ]
+          },
+          {
+            "line": "102",
+            "destination": "Shopping",
+            "schedule": [
+              { "time": "08:15", "accessible": true },
+              { "time": "08:45", "accessible": true },
+              { "time": "09:15", "accessible": false }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Ponto B",
+        "location": {
+          "latitude": -23.551520,
+          "longitude": -46.634308
+        },
+        "accessibility": {
+          "elevator": false,
+          "ramp": true,
+          "prioritySeats": 1,
+          "notes": "Rampas disponíveis, mas sem elevador."
+        },
+        "routes": [
+          {
+            "line": "201",
+            "destination": "Parque",
+            "schedule": [
+              { "time": "08:05", "accessible": true },
+              { "time": "08:35", "accessible": true },
+              { "time": "09:05", "accessible": false }
+            ]
+          },
+          {
+            "line": "202",
+            "destination": "Hospital",
+            "schedule": [
+              { "time": "08:20", "accessible": true },
+              { "time": "08:50", "accessible": true },
+              { "time": "09:20", "accessible": false }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Ponto C",
+        "location": {
+          "latitude": -23.552520,
+          "longitude": -46.635308
+        },
+        "accessibility": {
+          "elevator": true,
+          "ramp": true,
+          "prioritySeats": 3,
+          "notes": "Elevador e rampas em boas condições."
+        },
+        "routes": [
+          {
+            "line": "301",
+            "destination": "Universidade",
+            "schedule": [
+              { "time": "08:10", "accessible": true },
+              { "time": "08:40", "accessible": true },
+              { "time": "09:10", "accessible": false }
+            ]
+          },
+          {
+            "line": "302",
+            "destination": "Estádio",
+            "schedule": [
+              { "time": "08:25", "accessible": true },
+              { "time": "08:55", "accessible": true },
+              { "time": "09:25", "accessible": false }
+            ]
+          }
+        ]
+      }
+    ]
+  }
