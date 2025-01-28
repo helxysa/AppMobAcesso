@@ -1,10 +1,11 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Keyboard } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Keyboard, Dimensions } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { searchLocation, getRoute, calculateDistance, calculateDuration, initialRegion, reverseGeocode } from '../services/mapService';
 import { debounce } from 'lodash';
+import { useDynamicStyles } from '../utils/useDynamicStyles';
 
 export default function Map() {
   const [selectedOption, setSelectedOption] = useState('rota');
@@ -25,10 +26,91 @@ export default function Map() {
   const [loadingGPS, setLoadingGPS] = useState(false);
   const [searchError, setSearchError] = useState(null);
 
-  // Refs para controle de requisições
+  const { width: screenWidth } = Dimensions.get('window');
+  const buttonWidth = (screenWidth - 60) / 2; // 60 é o padding total (20 de cada lado + 20 de gap)
+
   const searchInProgress = useRef(false);
   const searchQueue = useRef({ start: null, end: null });
   const searchTimeout = useRef(null);
+
+  const dynamicStyles = useDynamicStyles({
+    selectedOptionText: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: '#333',
+      textAlign: 'center',
+      marginBottom: 20,
+    },
+    buttonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    preferenceBtnText: {
+      fontSize: screenWidth < 375 ? 16 : 18,
+      fontWeight: '600',
+    },
+    preferenceBtnTextSelected: {
+      color: '#fff',
+    },
+    preferenceBtnTextUnselected: {
+      color: '#1565C0',
+    },
+    loadingText: {
+      marginTop: 10,
+      color: '#333',
+      fontSize: 14,
+      fontWeight: '500',
+      textAlign: 'center',
+    },
+    suggestionText: {
+      flex: 1,
+      fontSize: 14,
+      color: '#333',
+    },
+    distanceText: {
+      fontSize: 12,
+      color: '#666',
+      minWidth: 50,
+      textAlign: 'right',
+    },
+    errorText: {
+      color: '#d32f2f',
+      fontSize: 12,
+      marginTop: 4,
+      marginLeft: 4,
+    },
+    routeDetailsTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 15,
+      color: '#333',
+    },
+    time: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: '#333',
+    },
+    distance: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: '#666',
+    },
+    inputLabel: {
+      fontSize: 16,
+      fontWeight: '500',
+      marginBottom: 8,
+      color: '#333',
+    },
+    input: {
+      fontSize: 16,
+      color: '#333',
+    },
+    placeholder: {
+      fontSize: 16,
+      color: '#666',
+    },
+  });
 
   useEffect(() => {
     getCurrentLocation();
@@ -316,6 +398,7 @@ export default function Map() {
             <TouchableOpacity 
               style={[
                 styles.preferenceBtn,
+                { width: buttonWidth },
                 selectedOption === 'linha' ? styles.preferenceBtnSelected : styles.preferenceBtnUnselected
               ]}
               onPress={() => setSelectedOption('linha')}
@@ -323,7 +406,7 @@ export default function Map() {
               accessibilityRole="button"
             >
               <Text style={[
-                styles.preferenceBtnText,
+                dynamicStyles.preferenceBtnText,
                 selectedOption === 'linha' ? styles.preferenceBtnTextSelected : styles.preferenceBtnTextUnselected
               ]}>Linha</Text>
             </TouchableOpacity>
@@ -331,6 +414,7 @@ export default function Map() {
             <TouchableOpacity 
               style={[
                 styles.preferenceBtn,
+                { width: buttonWidth },
                 selectedOption === 'rota' ? styles.preferenceBtnSelected : styles.preferenceBtnUnselected
               ]}
               onPress={() => setSelectedOption('rota')}
@@ -338,7 +422,7 @@ export default function Map() {
               accessibilityRole="button"
             >
               <Text style={[
-                styles.preferenceBtnText,
+                dynamicStyles.preferenceBtnText,
                 selectedOption === 'rota' ? styles.preferenceBtnTextSelected : styles.preferenceBtnTextUnselected
               ]}>Rota</Text>
             </TouchableOpacity>
@@ -346,17 +430,18 @@ export default function Map() {
         </View>
 
         <View style={styles.routePlanner}>
-          <Text style={styles.selectedOptionText}>
-            {selectedOption === 'linha' ? 'Você está no modo Linha' : 'Você está no modo Rota'}
+          <Text style={dynamicStyles.selectedOptionText}>
+            {selectedOption === 'rota' ? 'Calcular Rota' : 'Encontrar Pontos Próximos'}
           </Text>
           <View style={styles.routeInputs}>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Partida</Text>
+              <Text style={dynamicStyles.inputLabel}>Partida</Text>
               <View style={styles.inputWithButton}>
                 <View style={styles.inputContainer}>
-                  <TextInput 
-                    style={[styles.routeInput, { flex: 1 }]}
+                  <TextInput
+                    style={[styles.routeInput, dynamicStyles.input]}
                     placeholder="Digite seu local de partida"
+                    placeholderTextColor="#666"
                     value={startLocation}
                     onChangeText={(text) => {
                       setStartLocation(text);
@@ -371,7 +456,7 @@ export default function Map() {
                     accessibilityLabel="Local de partida"
                   />
                   {searchError && (
-                    <Text style={styles.errorText}>{searchError}</Text>
+                    <Text style={dynamicStyles.errorText}>{searchError}</Text>
                   )}
                   {startSuggestions.length > 0 && (
                     <View style={styles.suggestionsContainer}>
@@ -383,11 +468,11 @@ export default function Map() {
                         >
                           <MaterialCommunityIcons name="map-marker-outline" size={20} color="#666" />
                           <View style={styles.suggestionContent}>
-                            <Text style={styles.suggestionText} numberOfLines={2}>
+                            <Text style={dynamicStyles.suggestionText} numberOfLines={2}>
                               {suggestion.address}
                             </Text>
                             {suggestion.distance && (
-                              <Text style={styles.distanceText}>
+                              <Text style={dynamicStyles.distanceText}>
                                 {suggestion.distance < 1 
                                   ? `${Math.round(suggestion.distance * 1000)}m`
                                   : `${suggestion.distance.toFixed(1)}km`}
@@ -422,48 +507,51 @@ export default function Map() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Destino</Text>
-              <View style={styles.inputContainer}>
-                <TextInput 
-                  style={styles.routeInput}
-                  placeholder="Digite seu destino"
-                  value={endLocation}
-                  onChangeText={(text) => {
-                    setEndLocation(text);
-                    setSearchError(null);
-                    if (text.length >= 3) {
-                      debouncedQueueSearch(text, false);
-                    } else {
-                      setEndSuggestions([]);
-                    }
-                  }}
-                  accessibilityLabel="Local de destino"
-                />
-                {endSuggestions.length > 0 && (
-                  <View style={styles.suggestionsContainer}>
-                    {endSuggestions.map((suggestion, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={styles.suggestionItem}
-                        onPress={() => handleSelectSuggestion(suggestion, false)}
-                      >
-                        <MaterialCommunityIcons name="map-marker-outline" size={20} color="#666" />
-                        <View style={styles.suggestionContent}>
-                          <Text style={styles.suggestionText} numberOfLines={2}>
-                            {suggestion.address}
-                          </Text>
-                          {suggestion.distance && (
-                            <Text style={styles.distanceText}>
-                              {suggestion.distance < 1 
-                                ? `${Math.round(suggestion.distance * 1000)}m`
-                                : `${suggestion.distance.toFixed(1)}km`}
+              <Text style={dynamicStyles.inputLabel}>Destino</Text>
+              <View style={styles.inputWithButton}>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.routeInput, dynamicStyles.input]}
+                    placeholder="Digite seu destino"
+                    placeholderTextColor="#666"
+                    value={endLocation}
+                    onChangeText={(text) => {
+                      setEndLocation(text);
+                      setSearchError(null);
+                      if (text.length >= 3) {
+                        debouncedQueueSearch(text, false);
+                      } else {
+                        setEndSuggestions([]);
+                      }
+                    }}
+                    accessibilityLabel="Local de destino"
+                  />
+                  {endSuggestions.length > 0 && (
+                    <View style={styles.suggestionsContainer}>
+                      {endSuggestions.map((suggestion, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.suggestionItem}
+                          onPress={() => handleSelectSuggestion(suggestion, false)}
+                        >
+                          <MaterialCommunityIcons name="map-marker-outline" size={20} color="#666" />
+                          <View style={styles.suggestionContent}>
+                            <Text style={dynamicStyles.suggestionText} numberOfLines={2}>
+                              {suggestion.address}
                             </Text>
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                            {suggestion.distance && (
+                              <Text style={dynamicStyles.distanceText}>
+                                {suggestion.distance < 1 
+                                  ? `${Math.round(suggestion.distance * 1000)}m`
+                                  : `${suggestion.distance.toFixed(1)}km`}
+                              </Text>
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
 
@@ -480,7 +568,7 @@ export default function Map() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Buscar Rota</Text>
+                <Text style={dynamicStyles.buttonText}>Buscar Rota</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -491,7 +579,7 @@ export default function Map() {
             <View style={[styles.mapLoading, styles.centered]}>
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#0066CC" />
-                <Text style={styles.loadingText}>
+                <Text style={dynamicStyles.loadingText}>
                   {loadingLocation 
                     ? 'Obtendo sua localização...' 
                     : routeLoading 
@@ -548,16 +636,16 @@ export default function Map() {
 
           {routeDetails && (
             <View style={styles.routeDetails}>
-              <Text style={styles.routeDetailsTitle}>Detalhes da Rota</Text>
+              <Text style={dynamicStyles.routeDetailsTitle}>Detalhes da Rota</Text>
               <View style={styles.routeInfo}>
                 <View style={styles.timeDistance}>
                   <View style={styles.detailItem}>
                     <MaterialCommunityIcons name="clock-outline" size={24} color="#333" />
-                    <Text style={styles.time}>{routeDetails.duration} min</Text>
+                    <Text style={dynamicStyles.time}>{routeDetails.duration} min</Text>
                   </View>
                   <View style={styles.detailItem}>
                     <MaterialCommunityIcons name="map-marker-distance" size={24} color="#666" />
-                    <Text style={styles.distance}>{routeDetails.distance} km</Text>
+                    <Text style={dynamicStyles.distance}>{routeDetails.distance} km</Text>
                   </View>
                 </View>
               </View>
@@ -600,12 +688,6 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 15,
   },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-    color: '#333',
-  },
   inputWithButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -639,52 +721,45 @@ const styles = StyleSheet.create({
   routeButtonDisabled: {
     backgroundColor: '#ccc',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
-  },
   accessibilityPreferences: {
-    marginTop: 20,
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
   preferenceOptions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
-    gap: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 20,
   },
   preferenceBtn: {
-    flex: 1,
-    padding: 15,
-    borderRadius: 8,
-    marginHorizontal: 5,
+    height: 48,
+    borderRadius: 24, // Mais arredondado
     alignItems: 'center',
-    borderWidth: 2,
-  },
-  preferenceBtnUnselected: {
-    backgroundColor: 'transparent',
-    borderColor: '#1565C0',
+    justifyContent: 'center',
+    borderWidth: 1.5, // Borda um pouco mais grossa
+    elevation: 2, // Sombra no Android
+    shadowColor: '#000', // Sombra no iOS
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   preferenceBtnSelected: {
-    backgroundColor: '#1565C0',
-    borderColor: '#1565C0',
+    backgroundColor: '#0066CC',
+    borderColor: '#0066CC',
+    transform: [{ scale: 1.02 }], // Leve aumento quando selecionado
   },
-  preferenceBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  preferenceBtnTextUnselected: {
-    color: '#1565C0',
+  preferenceBtnUnselected: {
+    backgroundColor: '#fff',
+    borderColor: '#0066CC',
   },
   preferenceBtnTextSelected: {
     color: '#fff',
   },
-  selectedOptionText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
+  preferenceBtnTextUnselected: {
+    color: '#0066CC',
   },
   mapSection: {
     flex: 1,
@@ -718,13 +793,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     minWidth: 200,
   },
-  loadingText: {
-    marginTop: 10,
-    color: '#333',
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
   map: {
     height: 300,
     borderRadius: 8,
@@ -738,11 +806,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#eee',
   },
-  routeDetailsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
+  routeInfo: {
+    padding: 10,
   },
   timeDistance: {
     flexDirection: 'row',
@@ -753,16 +818,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  time: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  },
-  distance: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#666',
   },
   markerContainer: {
     padding: 8,
@@ -815,22 +870,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 8,
-  },
-  suggestionText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#333',
-  },
-  distanceText: {
-    fontSize: 12,
-    color: '#666',
-    minWidth: 50,
-    textAlign: 'right',
-  },
-  errorText: {
-    color: '#d32f2f',
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
   },
 });

@@ -2,9 +2,62 @@ import { View, Text, FlatList, TextInput, StyleSheet, TouchableOpacity } from 'r
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import dummydata from '../assets/dummydata.json';
+import { useDynamicStyles } from '../utils/useDynamicStyles';
 
 export default function BusStops() {
   const [selectedFilter, setSelectedFilter] = useState(null);
+  const dynamicStyles = useDynamicStyles({
+    subHeader: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: '#000',
+      marginBottom: 16,
+      letterSpacing: 0.5,
+    },
+    buttonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    filterBtnText: {
+      color: '#fff',
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    cardTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#000',
+      marginBottom: 16,
+      letterSpacing: 0.5,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#000',
+      marginBottom: 12,
+      letterSpacing: 0.5,
+    },
+    accessibilityText: {
+      fontSize: 16,
+      color: '#000',
+      flex: 1,
+      letterSpacing: 0.5,
+    },
+    routeNumber: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#1565C0',
+      marginRight: 16,
+      letterSpacing: 0.5,
+    },
+    routeDestination: {
+      fontSize: 16,
+      color: '#000',
+      flex: 1,
+      letterSpacing: 0.5,
+    },
+  });
 
   const renderAccessibilityIcon = (type, description) => {
     const icons = {
@@ -53,7 +106,7 @@ export default function BusStops() {
   return (
     <View style={styles.container}>
       <View style={styles.searchSection} accessible={true}>
-        <Text style={styles.subHeader} accessibilityRole="header">
+        <Text style={dynamicStyles.subHeader} accessibilityRole="header">
           Para onde você quer ir?
         </Text>
         
@@ -72,7 +125,7 @@ export default function BusStops() {
             accessibilityRole="button"
             accessibilityHint="Toque duas vezes para buscar o destino digitado"
           >
-            <Text style={styles.buttonText}>Buscar</Text>
+            <Text style={dynamicStyles.buttonText}>Buscar</Text>
           </TouchableOpacity>
         </View>
 
@@ -99,7 +152,7 @@ export default function BusStops() {
                 size={24} 
                 color="#fff" 
               />
-              <Text style={styles.filterBtnText}>
+              <Text style={dynamicStyles.filterBtnText}>
                 {filter === 'rampa' ? 'Rampa' : 
                  filter === 'elevador' ? 'Elevador' : 'Piso Tátil'}
               </Text>
@@ -122,7 +175,7 @@ export default function BusStops() {
             accessibilityLabel={`Ponto de ônibus ${item.name || 'Sem nome'}`}
             accessibilityHint="Toque duas vezes para ver mais detalhes sobre este ponto"
           >
-            <Text style={styles.cardTitle}>
+            <Text style={dynamicStyles.cardTitle}>
               {item.name || 'Ponto de ônibus'}
             </Text>
             
@@ -131,7 +184,7 @@ export default function BusStops() {
               accessible={true}
               accessibilityLabel="Recursos de acessibilidade"
             >
-              <Text style={styles.sectionTitle}>
+              <Text style={dynamicStyles.sectionTitle}>
                 Recursos de Acessibilidade:
               </Text>
               <View style={styles.accessibilityIcons}>
@@ -144,13 +197,13 @@ export default function BusStops() {
                       accessibilityLabel={`${feature.type}: ${feature.description}`}
                     >
                       {renderAccessibilityIcon(feature.type, feature.description)}
-                      <Text style={styles.accessibilityText}>
+                      <Text style={dynamicStyles.accessibilityText}>
                         {feature.description || 'Recurso de acessibilidade'}
                       </Text>
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.accessibilityText}>
+                  <Text style={dynamicStyles.accessibilityText}>
                     Informações de acessibilidade não disponíveis
                   </Text>
                 )}
@@ -162,7 +215,7 @@ export default function BusStops() {
               accessible={true}
               accessibilityLabel="Linhas de ônibus disponíveis"
             >
-              <Text style={styles.sectionTitle}>
+              <Text style={dynamicStyles.sectionTitle}>
                 Linhas Disponíveis:
               </Text>
               {(item.routes || []).map((route, index) => (
@@ -172,10 +225,10 @@ export default function BusStops() {
                   accessible={true}
                   accessibilityLabel={`Linha ${route.line || 'não informada'} com destino a ${route.destination || 'destino não informado'}`}
                 >
-                  <Text style={styles.routeNumber}>
+                  <Text style={dynamicStyles.routeNumber}>
                     {route.line || 'N/A'}
                   </Text>
-                  <Text style={styles.routeDestination}>
+                  <Text style={dynamicStyles.routeDestination}>
                     {route.destination || 'Destino não informado'}
                   </Text>
                 </View>
@@ -196,13 +249,6 @@ const styles = StyleSheet.create({
   },
   searchSection: {
     marginBottom: 24,
-  },
-  subHeader: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 16,
-    letterSpacing: 0.5,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -230,11 +276,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 0,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   quickFilters: {
     flexDirection: 'row',
     gap: 8,
@@ -256,11 +297,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#003c8f',
     borderColor: '#fff',
   },
-  filterBtnText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
   card: {
     backgroundColor: '#fff',
     padding: 20,
@@ -269,20 +305,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#E0E0E0',
     elevation: 0,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 16,
-    letterSpacing: 0.5,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 12,
-    letterSpacing: 0.5,
   },
   accessibilityContainer: {
     marginBottom: 20,
@@ -309,12 +331,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
   },
-  accessibilityText: {
-    fontSize: 16,
-    color: '#000',
-    flex: 1,
-    letterSpacing: 0.5,
-  },
   routesContainer: {
     backgroundColor: '#f5f5f5',
     padding: 16,
@@ -330,24 +346,5 @@ const styles = StyleSheet.create({
     minHeight: 56,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-  },
-  routeNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1565C0',
-    marginRight: 16,
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 4,
-    minWidth: 56,
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
-  routeDestination: {
-    fontSize: 16,
-    color: '#000',
-    flex: 1,
-    letterSpacing: 0.5,
   },
 });

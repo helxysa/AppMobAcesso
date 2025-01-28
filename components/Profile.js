@@ -1,7 +1,10 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
+import { useFontSize } from '../contexts/FontSizeContext';
 
 export default function Profile() {
+  const { increaseFontSize, decreaseFontSize } = useFontSize();
+
   return (
     <View style={styles.container}>
      
@@ -83,8 +86,20 @@ export default function Profile() {
             <View style={styles.settingItem}>
               <Text style={styles.settingText}>Tamanho da Fonte</Text>
               <View style={styles.fontSizeButtons}>
-                <TouchableOpacity style={styles.fontSizeBtn}><Text>A-</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.fontSizeBtn}><Text>A+</Text></TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.fontSizeBtn}
+                  onPress={decreaseFontSize}
+                  accessibilityLabel="Diminuir tamanho da fonte"
+                >
+                  <Text>A-</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.fontSizeBtn}
+                  onPress={increaseFontSize}
+                  accessibilityLabel="Aumentar tamanho da fonte"
+                >
+                  <Text>A+</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>

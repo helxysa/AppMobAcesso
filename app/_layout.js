@@ -1,9 +1,12 @@
 import { Stack } from 'expo-router/stack';
+import { FontSizeProvider } from '../contexts/FontSizeContext';
 
 export default function Layout() {
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <FontSizeProvider>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </FontSizeProvider>
   );
 }
