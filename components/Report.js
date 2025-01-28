@@ -8,9 +8,13 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { Link } from "expo-router";
 import { useState } from "react";
+import { useDynamicStyles } from '../utils/useDynamicStyles';
+import * as FileSystem from 'expo-file-system';
+import formularioBarreira from '../assets/data/formulario_barreira.json';
 
 export default function Report() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -22,14 +26,89 @@ export default function Report() {
     longitude: null,
   });
 
-  const handleSubmitReport = () => {
+  const dynamicStyles = useDynamicStyles({
+    headerText: {
+      fontSize: 28,
+      fontWeight: "bold",
+      color: "#333",
+    },
+    preferencesTitle: {
+      fontSize: 22,
+      fontWeight: "600",
+      color: "#333",
+    },
+    mockMapText: {
+      fontSize: 20,
+      color: "#666",
+    },
+    modalTitle: {
+      fontSize: 32,
+      fontWeight: "700",
+      marginBottom: 25,
+      textAlign: "center",
+      color: "#1565C0",
+    },
+    inputLabel: {
+      fontSize: 20,
+      marginBottom: 8,
+      color: "#424242",
+      fontWeight: "600",
+    },
+    input: {
+      fontSize: 18,
+      color: "#333",
+    },
+    buttonText: {
+      color: "#fff",
+      textAlign: "center",
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    cancelButtonText: {
+      color: "#1565C0",
+      fontSize: 18,
+      fontWeight: "700",
+    },
+  });
+
+  const saveReportToLocal = async (reportData) => {
+    try {
+      // Lê o conteúdo atual do arquivo
+      let existingData = formularioBarreira || [];
+
+      // Adiciona o novo reporte
+      existingData.push(reportData);
+
+      // Aqui você pode:
+      // 1. Enviar os dados para uma API que atualize o arquivo no projeto
+      // 2. Ou usar uma solução de armazenamento local como AsyncStorage
+      console.log('Dados a serem salvos:', JSON.stringify(existingData, null, 2));
+
+      Alert.alert(
+        "Sucesso",
+        "Reporte registrado com sucesso!",
+        [{ text: "OK" }]
+      );
+
+    } catch (error) {
+      console.error('Erro ao salvar o reporte:', error);
+      Alert.alert(
+        "Erro",
+        "Não foi possível salvar o reporte. Tente novamente.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  const handleSubmitReport = async () => {
     const dadosParaAPI = {
       ...reportData,
       dataReporte: new Date().toISOString(),
       status: "pendente",
     };
 
-    console.log("Dados prontos para enviar:", dadosParaAPI);
+    await saveReportToLocal(dadosParaAPI);
+    
     setModalVisible(false);
     setReportData({
       descricao: "",
@@ -43,7 +122,7 @@ export default function Report() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>
+        <Text style={dynamicStyles.headerText}>
           Colabore com a gente, faça um reporte de acessibilidade ou de área
           inacessível
         </Text>
@@ -52,7 +131,7 @@ export default function Report() {
       <ScrollView style={styles.content}>
         <View style={styles.routePlanner}>
           <View style={styles.accessibilityPreferences}>
-            <Text style={styles.preferencesTitle}>
+            <Text style={dynamicStyles.preferencesTitle}>
               Clique no mapa ou insira o local para reportar
             </Text>
           </View>
@@ -63,7 +142,7 @@ export default function Report() {
             style={styles.mockMap}
             onPress={() => setModalVisible(true)}
           >
-            <Text style={styles.mockMapText}>Área do Mapa</Text>
+            <Text style={dynamicStyles.mockMapText}>Área do Mapa</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -86,12 +165,12 @@ export default function Report() {
             </View>
             
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.modalTitle}>Reportar Barreira</Text>
+              <Text style={dynamicStyles.modalTitle}>Reportar Barreira</Text>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Localização Atual</Text>
+                <Text style={dynamicStyles.inputLabel}>Localização Atual</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, dynamicStyles.input, styles.inputStyle]}
                   placeholder="Digite a localização"
                   value={reportData.localizacao}
                   onChangeText={(text) =>
@@ -101,9 +180,9 @@ export default function Report() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Tipo de Barreira</Text>
+                <Text style={dynamicStyles.inputLabel}>Tipo de Barreira</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, dynamicStyles.input]}
                   placeholder="Descreva o tipo de barreira"
                   value={reportData.tipoBarreira}
                   onChangeText={(text) =>
@@ -113,9 +192,9 @@ export default function Report() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Descrição do Problema</Text>
+                <Text style={dynamicStyles.inputLabel}>Descrição do Problema</Text>
                 <TextInput
-                  style={[styles.input, styles.textArea]}
+                  style={[styles.input, styles.textArea, dynamicStyles.input]}
                   placeholder="Descreva o problema em detalhes"
                   multiline
                   numberOfLines={4}
@@ -131,7 +210,7 @@ export default function Report() {
                   style={[styles.button, styles.cancelButton]}
                   onPress={() => setModalVisible(false)}
                 >
-                  <Text style={[styles.buttonText, styles.cancelButtonText]}>
+                  <Text style={dynamicStyles.cancelButtonText}>
                     Cancelar
                   </Text>
                 </TouchableOpacity>
@@ -140,7 +219,7 @@ export default function Report() {
                   style={[styles.button, styles.submitButton]}
                   onPress={handleSubmitReport}
                 >
-                  <Text style={styles.buttonText}>Enviar</Text>
+                  <Text style={dynamicStyles.buttonText}>Enviar</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -230,34 +309,21 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     marginBottom: 10,
   },
-  modalTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 25,
-    textAlign: "center",
-    color: "#1565C0",
-  },
   inputGroup: {
     marginBottom: 20,
+    width: '100%',
   },
-  inputLabel: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: "#424242",
-    fontWeight: "600",
-  },
-  input: {
-    borderWidth: 1.5,
-    borderColor: "#E0E0E0",
+  inputStyle: {
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
-    padding: 15,
-    fontSize: 16,
-    backgroundColor: "#F5F5F5",
-    color: "#333",
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   textArea: {
     height: 120,
     textAlignVertical: "top",
+    paddingTop: 16,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -279,6 +345,9 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    minHeight: 54,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cancelButton: {
     backgroundColor: "#fff",
@@ -290,13 +359,12 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: "#1565C0",
   },
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  cancelButtonText: {
-    color: "#1565C0",
+  input: {
+    width: '100%',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
 });
