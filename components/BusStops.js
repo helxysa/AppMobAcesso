@@ -1,6 +1,6 @@
-import { View, Text, FlatList, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TextInput, StyleSheet, TouchableOpacity, Platform, AccessibilityInfo } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import dummydata from '../assets/dummydata.json';
 import { useDynamicStyles } from '../utils/useDynamicStyles';
 
@@ -103,77 +103,193 @@ export default function BusStops() {
     setSelectedFilter(selectedFilter === filter ? null : filter);
   };
 
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+    minimumViewTime: 100,
+    waitForInteraction: true
+  }).current;
+
+  const onViewableItemsChanged = useCallback(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      const currentIndex = viewableItems[0].index;
+      const totalItems = dummydata.busStops.length;
+      const item = viewableItems[0].item;
+      
+      const message = `${currentIndex + 1} de ${totalItems} pontos. ${item.name || 'Ponto sem nome identificado'}. ${
+        item.accessibility?.features?.length 
+          ? `Com ${item.accessibility.features.length} recursos de acessibilidade` 
+          : 'Sem informações de acessibilidade'
+      }`;
+
+      AccessibilityInfo.announceForAccessibility(message);
+    }
+  }, []);
+
+  const getItemLayout = useCallback((data, index) => ({
+    length: 200, // altura aproximada de cada item
+    offset: 200 * index,
+    index,
+  }), []);
+
+  const viewabilityConfigCallbackPairs = useRef([
+    { viewabilityConfig, onViewableItemsChanged }
+  ]).current;
+
   return (
     <View style={styles.container}>
-      <View style={styles.searchSection} accessible={true}>
-        <Text style={dynamicStyles.subHeader} accessibilityRole="header">
+      <View 
+        style={styles.searchSection} 
+        accessible={true}
+        accessibilityRole="region"
+        accessibilityLabel="Área de busca e filtros"
+        accessibilityHint="Nesta seção você pode buscar seu destino e filtrar pontos de ônibus por recursos de acessibilidade"
+      >
+        <Text 
+          style={dynamicStyles.subHeader} 
+          accessibilityRole="header"
+          accessible={true}
+          accessibilityLabel="Para onde você quer ir?"
+          accessibilityHint="Abaixo você encontrará um campo de busca e opções de filtro para encontrar seu destino"
+        >
           Para onde você quer ir?
         </Text>
         
-        <View style={styles.searchContainer}>
+        <View 
+          style={styles.searchContainer}
+          accessible={true}
+          accessibilityRole="search"
+          accessibilityLabel="Campo de busca de destino"
+          importantForAccessibility="yes"
+        >
           <TextInput 
             style={styles.searchInput}
             placeholder="Digite seu destino" 
-            accessibilityLabel="Campo de busca de destino"
-            accessibilityHint="Digite o nome do local para onde deseja ir"
+            accessibilityLabel="Campo para digitar seu destino"
+            accessibilityHint="Digite o endereço, nome do local ou ponto de referência. Por exemplo: Rua das Flores, Shopping Centro ou Terminal Central"
+            accessibilityRole="search"
             placeholderTextColor="#666"
             importantForAccessibility="yes"
+            returnKeyType="search"
+            clearButtonMode="while-editing"
           />
           <TouchableOpacity 
             style={styles.searchButton}
-            accessibilityLabel="Buscar destino"
+            accessibilityLabel="Buscar pontos de ônibus"
             accessibilityRole="button"
-            accessibilityHint="Toque duas vezes para buscar o destino digitado"
+            accessibilityHint="Ao ativar, irá buscar pontos de ônibus próximos ao destino que você digitou"
+            accessibilityActions={[{ name: 'activate', label: 'buscar destino' }]}
+            onAccessibilityAction={({ nativeEvent: { actionName }}) => {
+              if (actionName === 'activate') {
+                // Aqui vai a lógica de busca
+              }
+            }}
           >
-            <Text style={dynamicStyles.buttonText}>Buscar</Text>
+            <Text 
+              style={dynamicStyles.buttonText}
+              accessibilityElementsHidden={true}
+              importantForAccessibility="no"
+            >
+              Buscar
+            </Text>
           </TouchableOpacity>
         </View>
 
         <View 
           style={styles.quickFilters}
           accessible={true}
-          accessibilityLabel="Filtros de acessibilidade"
+          accessibilityRole="tablist"
+          accessibilityLabel="Filtros de acessibilidade disponíveis"
+          accessibilityHint="Selecione um ou mais recursos para filtrar os pontos de ônibus. Os filtros incluem rampa de acesso, elevador e piso tátil"
         >
-          {['rampa', 'elevador', 'pisoTatil'].map((filter) => (
-            <TouchableOpacity 
-              key={filter}
-              style={[
-                styles.filterBtn,
-                selectedFilter === filter && styles.filterBtnSelected
-              ]}
-              onPress={() => handleFilterPress(filter)}
-              accessibilityLabel={`Filtrar por ${filter}`}
-              accessibilityRole="button"
-              accessibilityHint={`Toque duas vezes para ${selectedFilter === filter ? 'remover' : 'aplicar'} filtro de ${filter}`}
-            >
-              <MaterialCommunityIcons 
-                name={filter === 'rampa' ? 'wheelchair-accessibility' : 
-                      filter === 'elevador' ? 'elevator-passenger' : 'walk'} 
-                size={24} 
-                color="#fff" 
-              />
-              <Text style={dynamicStyles.filterBtnText}>
-                {filter === 'rampa' ? 'Rampa' : 
-                 filter === 'elevador' ? 'Elevador' : 'Piso Tátil'}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {['rampa', 'elevador', 'pisoTatil'].map((filter) => {
+            const isSelected = selectedFilter === filter;
+            const filterLabels = {
+              rampa: {
+                name: 'Rampa de acesso',
+                description: 'Filtra pontos com rampa de acesso para cadeirantes'
+              },
+              elevador: {
+                name: 'Elevador',
+                description: 'Filtra pontos com elevador para acesso à plataforma'
+              },
+              pisoTatil: {
+                name: 'Piso tátil',
+                description: 'Filtra pontos com piso tátil para auxílio na locomoção'
+              }
+            };
+
+            return (
+              <TouchableOpacity 
+                key={filter}
+                style={[
+                  styles.filterBtn,
+                  isSelected && styles.filterBtnSelected
+                ]}
+                onPress={() => handleFilterPress(filter)}
+                accessibilityRole="tab"
+                accessibilityState={{ 
+                  selected: isSelected,
+                  disabled: false
+                }}
+                accessibilityLabel={`${filterLabels[filter].name}${isSelected ? ' (selecionado)' : ''}`}
+                accessibilityHint={`${isSelected ? 'Desativar' : 'Ativar'} filtro para ${filterLabels[filter].description}`}
+                accessibilityActions={[
+                  { name: 'activate', label: isSelected ? 'desativar filtro' : 'ativar filtro' }
+                ]}
+                onAccessibilityAction={({ nativeEvent: { actionName }}) => {
+                  if (actionName === 'activate') {
+                    handleFilterPress(filter);
+                  }
+                }}
+              >
+                <MaterialCommunityIcons 
+                  name={filter === 'rampa' ? 'wheelchair-accessibility' : 
+                        filter === 'elevador' ? 'elevator-passenger' : 'walk'} 
+                  size={24} 
+                  color="#fff"
+                  accessibilityElementsHidden={true}
+                  importantForAccessibility="no"
+                />
+                <Text 
+                  style={dynamicStyles.filterBtnText}
+                  accessibilityElementsHidden={true}
+                  importantForAccessibility="no"
+                >
+                  {filterLabels[filter].name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
       <FlatList
         data={dummydata.busStops}
         keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-        accessibilityLabel="Lista de pontos de ônibus"
-        accessibilityHint="Deslize para cima ou para baixo para navegar entre os pontos"
+        accessibilityLabel="Lista de pontos de ônibus disponíveis"
+        accessibilityHint="Deslize para cima ou para baixo para navegar entre os pontos. Cada ponto mostrará suas informações de acessibilidade."
         accessibilityRole="list"
-        renderItem={({ item }) => (
+        viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
+        getItemLayout={getItemLayout}
+        removeClippedSubviews={true}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={5}
+        renderItem={({ item, index }) => (
           <TouchableOpacity 
             style={styles.card}
             accessible={true}
             accessibilityRole="button"
-            accessibilityLabel={`Ponto de ônibus ${item.name || 'Sem nome'}`}
-            accessibilityHint="Toque duas vezes para ver mais detalhes sobre este ponto"
+            accessibilityLabel={`Ponto ${index + 1} de ${dummydata.busStops.length}${item.name ? ': ' + item.name : ''}`}
+            accessibilityHint={`${
+              item.accessibility?.features?.length 
+                ? `Com ${item.accessibility.features.length} recursos de acessibilidade. ` 
+                : 'Sem informações de acessibilidade. '
+            }${
+              index < dummydata.busStops.length - 1 
+                ? 'Deslize para baixo para próximo ponto.' 
+                : 'Último ponto da lista.'
+            } Toque duas vezes para ver detalhes.`}
           >
             <Text style={dynamicStyles.cardTitle}>
               {item.name || 'Ponto de ônibus'}
@@ -182,19 +298,32 @@ export default function BusStops() {
             <View 
               style={styles.accessibilityContainer}
               accessible={true}
-              accessibilityLabel="Recursos de acessibilidade"
+              accessibilityRole="region"
+              accessibilityLabel="Recursos de acessibilidade disponíveis neste ponto"
             >
-              <Text style={dynamicStyles.sectionTitle}>
+              <Text 
+                style={dynamicStyles.sectionTitle}
+                accessibilityRole="header"
+              >
                 Recursos de Acessibilidade:
               </Text>
-              <View style={styles.accessibilityIcons}>
+              <View 
+                style={styles.accessibilityIcons}
+                accessible={true}
+                accessibilityRole="list"
+                accessibilityLabel="Lista de recursos de acessibilidade"
+              >
                 {item.accessibility?.features ? (
                   item.accessibility.features.map((feature, index) => (
                     <View 
                       key={index} 
                       style={styles.accessibilityItem}
                       accessible={true}
-                      accessibilityLabel={`${feature.type}: ${feature.description}`}
+                      accessibilityRole="listitem"
+                      accessibilityLabel={`${feature.type === 'rampa' ? 'Rampa de acesso' : 
+                                         feature.type === 'elevador' ? 'Elevador' : 
+                                         'Piso tátil'}`}
+                      accessibilityHint={feature.description || 'Sem descrição disponível'}
                     >
                       {renderAccessibilityIcon(feature.type, feature.description)}
                       <Text style={dynamicStyles.accessibilityText}>
@@ -213,9 +342,13 @@ export default function BusStops() {
             <View 
               style={styles.routesContainer}
               accessible={true}
-              accessibilityLabel="Linhas de ônibus disponíveis"
+              accessibilityRole="region"
+              accessibilityLabel="Linhas de ônibus que param neste ponto"
             >
-              <Text style={dynamicStyles.sectionTitle}>
+              <Text 
+                style={dynamicStyles.sectionTitle}
+                accessibilityRole="header"
+              >
                 Linhas Disponíveis:
               </Text>
               {(item.routes || []).map((route, index) => (
@@ -223,7 +356,9 @@ export default function BusStops() {
                   key={index} 
                   style={styles.routeItem}
                   accessible={true}
-                  accessibilityLabel={`Linha ${route.line || 'não informada'} com destino a ${route.destination || 'destino não informado'}`}
+                  accessibilityRole="listitem"
+                  accessibilityLabel={`Linha ${route.line || 'número não informado'}`}
+                  accessibilityHint={`Destino: ${route.destination || 'destino não informado'}`}
                 >
                   <Text style={dynamicStyles.routeNumber}>
                     {route.line || 'N/A'}

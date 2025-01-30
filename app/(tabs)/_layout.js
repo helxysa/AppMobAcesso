@@ -62,18 +62,24 @@ export default function Layout() {
       tabBarItemStyle: {
         paddingVertical: screenWidth < 375 ? 4 : 6,
       },
+      tabBarAccessibilityLabel: "Menu de navegação principal",
+      screenReaderInstructionsHint: "Deslize para a esquerda ou direita para navegar entre as abas",
     }}>
       <Tabs.Screen 
         name="index" 
         options={{
           title: 'Pontos de Ônibus',
           tabBarLabel: 'Pontos',
+          tabBarAccessibilityLabel: "Aba Pontos de Ônibus",
+          tabBarAccessibilityHint: "Lista de pontos de ônibus próximos com informações de acessibilidade e linhas disponíveis",
           tabBarIcon: ({ color, focused }) => (
             <MaterialCommunityIcons 
               name="bus-stop" 
               size={focused ? tabIconSize + 4 : tabIconSize} 
               color={color}
-              accessibilityLabel="Aba Pontos de Ônibus"
+              accessibilityRole="image"
+              accessibilityLabel={focused ? "Pontos de Ônibus - Aba selecionada" : "Pontos de Ônibus"}
+              accessibilityHint="Mostra lista de pontos de ônibus próximos"
               style={{
                 marginBottom: -4,
                 opacity: focused ? 1 : 0.8,
@@ -87,12 +93,16 @@ export default function Layout() {
         options={{
           title: 'Mapa de Pontos',
           tabBarLabel: 'Mapa',
+          tabBarAccessibilityLabel: "Aba Mapa",
+          tabBarAccessibilityHint: "Visualize pontos de ônibus no mapa interativo com recursos de acessibilidade",
           tabBarIcon: ({ color, focused }) => (
             <MaterialCommunityIcons 
               name="map-marker-radius" 
               size={focused ? tabIconSize + 4 : tabIconSize}
               color={color}
-              accessibilityLabel="Aba Mapa"
+              accessibilityRole="image"
+              accessibilityLabel={focused ? "Mapa - Aba selecionada" : "Mapa"}
+              accessibilityHint="Mostra mapa interativo com pontos de ônibus"
               style={{
                 marginBottom: -4,
                 opacity: focused ? 1 : 0.8,
@@ -106,12 +116,16 @@ export default function Layout() {
         options={{
           title: 'Reportar Problema',
           tabBarLabel: 'Reportar',
+          tabBarAccessibilityLabel: "Aba Reportar Problema",
+          tabBarAccessibilityHint: "Reporte problemas de acessibilidade ou outros issues nos pontos de ônibus",
           tabBarIcon: ({ color, focused }) => (
             <MaterialCommunityIcons 
               name="alert-circle" 
               size={focused ? tabIconSize + 4 : tabIconSize}
               color={color}
-              accessibilityLabel="Aba Reportar"
+              accessibilityRole="image"
+              accessibilityLabel={focused ? "Reportar Problema - Aba selecionada" : "Reportar Problema"}
+              accessibilityHint="Reportar problemas em pontos de ônibus"
               style={{
                 marginBottom: -4,
                 opacity: focused ? 1 : 0.8,
@@ -125,12 +139,16 @@ export default function Layout() {
         options={{
           title: 'Meu Perfil',
           tabBarLabel: 'Perfil',
+          tabBarAccessibilityLabel: "Aba Meu Perfil",
+          tabBarAccessibilityHint: "Acesse suas preferências e configurações de acessibilidade",
           tabBarIcon: ({ color, focused }) => (
             <MaterialCommunityIcons 
               name="account-circle" 
               size={focused ? tabIconSize + 4 : tabIconSize}
               color={color}
-              accessibilityLabel="Aba Perfil"
+              accessibilityRole="image"
+              accessibilityLabel={focused ? "Meu Perfil - Aba selecionada" : "Meu Perfil"}
+              accessibilityHint="Gerenciar perfil e preferências"
               style={{
                 marginBottom: -4,
                 opacity: focused ? 1 : 0.8,
