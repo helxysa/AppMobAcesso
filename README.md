@@ -11,8 +11,10 @@ O MobAcesso tem como missão mapear e sugerir rotas mais acessíveis, consideran
 
 Atualmente, o projeto está em fase de testes e validação, com melhorias sendo aplicadas a partir de mapeamento com usuários.
 
-🔗 Acesse a demonstração e mais informações:  
-[https://mobacesso.vercel.app](https://mobacesso.vercel.app)
+🔗 Acesse a demonstração do aplicativo:  
+[https://mobacesso.vercel.app](https://mobacesso.vercel.app) </br>
+🔗 Acesse a explicação do aplicativo: </br>
+[https://www.instagram.com/reel/DGVlI0JuqBn/?igsh=OTc0cWcxZmtzdWU3](https://www.instagram.com/reel/DGVlI0JuqBn/?igsh=OTc0cWcxZmtzdWU3)
 
 > **Nota**: Este repositório contém a versão inicial do projeto.
 
